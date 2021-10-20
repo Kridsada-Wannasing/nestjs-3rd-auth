@@ -1,6 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { User } from './utils/user-interface';
 import { hash, compare } from 'bcrypt';
+import { AuthRequest } from './utils/request-interface';
 
 type UserResponse = Omit<User, 'password'>;
 
@@ -18,6 +19,17 @@ export class AppService {
 
   getHello(): string {
     return 'Hello World!';
+  }
+
+  googleLogin(req: AuthRequest) {
+    if (!req?.user) {
+      return 'No user from google';
+    }
+
+    return {
+      message: 'User information from google',
+      user: req.user,
+    };
   }
 
   async login(email: string, password: string): Promise<UserResponse> {

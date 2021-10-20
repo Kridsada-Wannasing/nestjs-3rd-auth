@@ -35,6 +35,18 @@ export class AppController {
     };
   }
 
+  @Get('google')
+  @UseGuards(AuthGuard('google'))
+  async googleLogin(): Promise<any> {
+    return HttpStatus.OK;
+  }
+
+  @Get('google/redirect')
+  @UseGuards(AuthGuard('google'))
+  async googleLoginAndRedirect(@Req() req: AuthRequest): Promise<any> {
+    return this.appService.googleLogin(req);
+  }
+
   @UseGuards(AuthGuard('local'))
   @Post('/local/login')
   async localLogin(@Request() req) {
