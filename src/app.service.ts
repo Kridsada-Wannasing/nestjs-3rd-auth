@@ -1,9 +1,8 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { User } from './utils/user-interface';
+import { User, UserResponse } from './utils/user-interface';
 import { hash, compare } from 'bcrypt';
 import { AuthRequest } from './utils/request-interface';
-
-type UserResponse = Omit<User, 'password'>;
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AppService {
@@ -16,6 +15,8 @@ export class AppService {
       lastName: 'test',
     },
   ];
+
+  constructor(private jwtService: JwtService) {}
 
   getHello(): string {
     return 'Hello World!';
@@ -32,18 +33,32 @@ export class AppService {
     };
   }
 
-  async login(email: string, password: string): Promise<UserResponse> {
+  async verify(email: string, password: string): Promise<UserResponse> {
     const user = this.users.find((user: User) => user.email === email);
 
-    if (!user) throw new UnauthorizedException('credentials');
+    if (!user) throw new UnauthorizedException('credentials1');
 
     const hashedPassword = await hash(password, 10);
     const isPasswordMatched = await compare(password, hashedPassword);
 
-    if (!isPasswordMatched) throw new UnauthorizedException('credentials');
+    if (!isPasswordMatched) throw new UnauthorizedException('credentials2');
 
     const userResponse = { ...user, password: undefined };
 
     return userResponse;
+  }
+
+  async login(email: string, password: string) {
+    const user = await this.verify(email, password);
+
+    const payload = {
+      firstName: user.firstName,
+      lastName: user.lastName,
+      id: user.id,
+    };
+
+    return {
+      access_token: this.jwtService.sign(payload),
+    };
   }
 }
